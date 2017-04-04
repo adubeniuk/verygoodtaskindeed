@@ -1,4 +1,4 @@
-* Check API
+# Check API
 
 Get user
 
@@ -14,7 +14,7 @@ curl -H "Content-Type: application/json" -X POST -d '{
 }' http://check.mycluster.club/users
 
 
-* Check cluster
+# Check cluster
 
 kubectl cluster-info
 Kubernetes master is running at https://api.mycluster.club
@@ -28,7 +28,7 @@ logger                100.69.60.165    <none>             514/TCP        2h
 postgres-postgresql   100.69.158.52    <none>             5432/TCP       10h
 weave-scope-app       100.66.34.7      <none>             80/TCP         11h
 
-* Forward Weave Scope
+# Forward Weave Scope
 
 Forward Weave Scope
 
@@ -37,9 +37,9 @@ kubectl port-forward $(kubectl get pod --selector=weave-scope-component=app -o j
 http://localhost:4040
 
 
-* Howto
+# Howto
 
-Bootstrap a cluster on AWS using Kops
+Bootstrap a cluster on AWS using Kops:
 
 aws configure
 aws s3api create-bucket --bucket mycluster-state-store --region eu-west-1
@@ -53,16 +53,16 @@ kops create cluster --node-count 3 --zones eu-west-1a,eu-west-1b,eu-west-1c --ma
 
 kops update cluster ${NAME} --yes
 
-Setup PostgreSQL from a helm chart
+Setup PostgreSQL from a helm chart:
 
 helm install --name postgres --set postgresUser=SpringBootUser,postgresPassword=SpringBootPass,postgresDatabase=SpringBootRestApi stable/postgresql
 
-Create api-seed service
+Create api-seed service:
 
 kubectl create -f api-seed/deployment.yml 
 kubectl create -f api-seed/svc.yml
 
-Create logger service
+Create logger service:
 
 kubectl create -f logger/deployment.yml 
 kubectl create -f logger/svc.yml
