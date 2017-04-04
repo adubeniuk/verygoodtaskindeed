@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: api-seed
-        image: adubeniuk/api-seed
+        image: adubeniuk/api-seed:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: POD_IP
