@@ -1,9 +1,49 @@
+# Solution details
+
+I'm running latest Kubernetes 1.6 cluster bootstrapped with latest Kops 1.6.0-alpha
+on AWS in an existing VPC with both public and private subnets per each AZ.
+Kubernetes master and worker nodes are created as ASGs in private subnets per each
+of three AZs in the region making such setup secure and highly available.
+And also making me proud of this thing :)
+
+Custom docker images are used to implement the requirements. I've pushed them to
+[DockerHub](https://hub.docker.com/r/adubeniuk/) for simplicity. Separate private Docker registry or ECS registry
+should be used for private images in production.
+
+Latest Weave Net 1.6 addon is used for networking and Weave Scope can be used
+to visualize and interact with the nodes, pods, containers and their processes.
+
+API service is based on [SpringBootRestApiSeed](https://github.com/thoersch/spring-boot-rest-api-seed) and connects to PostgreSQL via [DNS service name](https://kubernetes.io/docs/concepts/services-networking/service/#dns)
+API service is being exposed as LoadBalancer via external AWS ELB making it
+exposed on each Kubernetes node on private network and ELB does the rest.
+
+PostgreSQL service has been installed from a [helm chart](https://github.com/kubernetes/charts/tree/master/stable/postgresql) with the required user/pass/db
+config. PGDATA is stored on a PersistentVolume and can be claimed by other pods.
+
+Logger service is based on rsyslog and listens for the logs on tcp/514 only.
+
+NetworkPolicies have been used to ensure that each machine can only connect to
+the machine(s) specified in the network rules. There are two ingress network
+policies for API and Logger services allowing traffic only from the allowed pods.
+Additionally DefaultDeny ingress policy is set for all the pods in default namespace.
+
+Serverspec has been used to test the configuration. You can run it from Bastion
+(jump server) however the tests are really simple and there's no Kubernetes support.
+
+
+# Things to discuss:
+
+• issues with using socat for log redirection (implementation, encryption, performance)
+
+• using tools like serverspec to test docker containers on kubernetes
+(lack of native support for kubernetes, overall simplicity of the tools)
+
 # Check API
 
 Get user
 
 ```
-curl check.mycluster.club/users/1
+http://check.mycluster.club/users/1
 ```
 Add user
 
@@ -30,6 +70,9 @@ kubernetes            100.64.0.1       <none>             443/TCP        11h
 logger                100.69.60.165    <none>             514/TCP        2h
 postgres-postgresql   100.69.158.52    <none>             5432/TCP       10h
 weave-scope-app       100.66.34.7      <none>             80/TCP         11h
+
+kubectl logs api-seed-97405333-30659 | grep GET | wc -l
+    3748
 ```
 
 # Forward Weave Scope
@@ -42,8 +85,10 @@ kubectl port-forward $(kubectl get pod --selector=weave-scope-component=app -o j
 
 http://localhost:4040
 
+# Do it yourself
 
-# Howto
+Setup AWS VPC, private and public subnets, NAT gateways and routing tables. Get
+your VPC ID and create a private DNS hosted zone with the name of the cluster.
 
 Bootstrap a cluster on AWS using Kops:
 
@@ -54,7 +99,7 @@ aws s3api create-bucket --bucket mycluster-state-store --region eu-west-1
 export NAME=mycluster.club
 export KOPS_STATE_STORE=s3://mycluster-state-store
 export VPC_ID=<VPC_ID>
-export DNS_ZONE_PRIVATE_ID=<ID_OF_PRIVATE_HOSTED_ZONE> 
+export DNS_ZONE_PRIVATE_ID=<ID_OF_PRIVATE_HOSTED_ZONE>
 
 kops create cluster --node-count 3 --zones eu-west-1a,eu-west-1b,eu-west-1c --master-zones eu-west-1a,eu-west-1b,eu-west-1c --dns-zone={$DNS_ZONE_PRIVATE_ID} --dns private --node-size t2.medium --master-size t2.medium --topology private --networking weave --vpc={$VPC_ID} --bastion --channel alpha {$NAME}
 
@@ -70,14 +115,14 @@ helm install --name postgres --set postgresUser=SpringBootUser,postgresPassword=
 Create api-seed service:
 
 ```
-kubectl create -f api-seed/deployment.yml 
+kubectl create -f api-seed/deployment.yml
 kubectl create -f api-seed/svc.yml
 ```
 
 Create logger service:
 
 ```
-kubectl create -f logger/deployment.yml 
+kubectl create -f logger/deployment.yml
 kubectl create -f logger/svc.yml
 ```
 
@@ -88,7 +133,6 @@ kubectl create -f networkpolicy/defaultdeny.yml
 ```
 
 Create Network Policies for each service:
-
 ```
 kubectl create -f networkpolicy/db-ingress.yml
 kubectl create -f networkpolicy/logger-ingress.yml
