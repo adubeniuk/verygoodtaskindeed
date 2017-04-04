@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: api-seed
-        image: adubeniuk/api-seed:latest
-        imagePullPolicy: IfNotPresent
+        image: adubeniuk/api-seed
+        imagePullPolicy: Always
         env:
         - name: POD_IP
           valueFrom: { fieldRef: { fieldPath: status.podIP } }
