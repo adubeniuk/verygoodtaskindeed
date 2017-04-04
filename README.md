@@ -14,29 +14,22 @@ Latest Weave Net 1.6 addon is used for networking and Weave Scope can be used
 to visualize and interact with the nodes, pods, containers and their processes.
 
 API service is based on [SpringBootRestApiSeed](https://github.com/thoersch/spring-boot-rest-api-seed) and connects to PostgreSQL via [DNS service name](https://kubernetes.io/docs/concepts/services-networking/service/#dns)
-API service is being exposed as LoadBalancer via external AWS ELB making it
-exposed on each Kubernetes node on private network and ELB does the rest.
+API service is exposed to the public by external AWS ELB forwarding to service NodePort
+in private network.
 
 PostgreSQL service has been installed from a [helm chart](https://github.com/kubernetes/charts/tree/master/stable/postgresql) with the required user/pass/db
-config. PGDATA is stored on a PersistentVolume and can be claimed by other pods.
+config.
+PGDATA is stored on a PersistentVolume and can be claimed by new pods.
 
 Logger service is based on rsyslog and listens for the logs on tcp/514 only.
 
 NetworkPolicies have been used to ensure that each machine can only connect to
 the machine(s) specified in the network rules. There are two ingress network
 policies for API and Logger services allowing traffic only from the allowed pods.
-Additionally DefaultDeny ingress policy is set for all the pods in default namespace.
+Also DefaultDeny ingress policy is set for all the pods in the default namespace.
 
 Serverspec has been used to test the configuration. You can run it from Bastion
-(jump server) however the tests are really simple and there's no Kubernetes support.
-
-
-# Things to discuss:
-
-• issues with using socat for log redirection (implementation, encryption, performance)
-
-• using tools like serverspec to test docker containers on kubernetes
-(lack of native support for kubernetes, overall simplicity of the tools)
+(jump server) however the tests are really simple as there's no Kubernetes support.
 
 # Check API
 
@@ -75,9 +68,9 @@ kubectl logs api-seed-97405333-30659 | grep GET | wc -l
     3748
 ```
 
-# Forward Weave Scope
+# Access Weave Scope
 
-Forward Weave Scope
+Forward Weave Scope to your localhost
 
 ```
 kubectl port-forward $(kubectl get pod --selector=weave-scope-component=app -o jsonpath='{.items..metadata.name}') 4040
@@ -87,8 +80,8 @@ http://localhost:4040
 
 # Do it yourself
 
-Setup AWS VPC, private and public subnets, NAT gateways and routing tables. Get
-your VPC ID and create a private DNS hosted zone with the name of the cluster.
+Setup AWS VPC, private and public subnets, NAT gateways and routing tables.
+You will need your VPC ID and a private DNS hosted zone resolving the name of the cluster.
 
 Bootstrap a cluster on AWS using Kops:
 
@@ -137,3 +130,10 @@ Create Network Policies for each service:
 kubectl create -f networkpolicy/db-ingress.yml
 kubectl create -f networkpolicy/logger-ingress.yml
 ```
+
+# Things to discuss
+
+• using socat for log redirection (implementation, encryption, performance)
+
+• using tools like serverspec to test docker containers on kubernetes
+(lack of native support for kubernetes, overall simplicity of the tools)
