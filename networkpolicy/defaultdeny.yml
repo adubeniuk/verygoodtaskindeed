@@ -1,0 +1,14 @@
+# Annotates default namespace with
+# DefaultDeny policy
+# https://kubernetes.io/docs/concepts/services-networking/networkpolicies/
+
+kind: Namespace
+apiVersion: v1
+metadata:
+  annotations:
+    net.beta.kubernetes.io/network-policy: |
+      {
+        "ingress": {
+          "isolation": "DefaultDeny"
+        }
+      }

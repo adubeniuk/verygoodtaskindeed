@@ -1,0 +1,25 @@
+# Allows ingress traffic on port tcp/514  
+# to pods with label logger
+# from pods with label api-seed and postgres-postgresql
+
+
+apiVersion: extensions/v1beta1
+kind: NetworkPolicy
+metadata:
+ name: logger-ingress
+ namespace: default
+spec:
+ podSelector:
+  matchLabels:
+    app: logger
+ ingress:
+  - from:
+     - podSelector:
+        matchLabels:
+         app: api-seed
+     - podSelector:
+        matchLabels:
+         app: postgres-postgresql
+    ports:
+     - protocol: TCP
+       port: 514

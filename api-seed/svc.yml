@@ -1,0 +1,17 @@
+# Service definition for API service
+# External Load Balancer on AWS will be created
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-seed
+  labels:
+    app: api-seed
+spec:
+  ports:
+  - name: api
+    port: 80
+    targetPort: api
+  selector:
+    app: api-seed
+  type: LoadBalancer

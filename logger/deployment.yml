@@ -1,0 +1,42 @@
+# Deployment definition for Logger
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: logger
+  labels:
+    app: logger
+spec:
+  template:
+    metadata:
+      labels:
+        app: logger
+    spec:
+      containers:
+      - name: logger
+        image: adubeniuk/logger
+        imagePullPolicy: Always
+        env:
+        - name: POD_IP
+          valueFrom: { fieldRef: { fieldPath: status.podIP } }
+        ports:
+        - name: logger
+          containerPort: 514
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec echo works
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec echo works
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          periodSeconds: 5

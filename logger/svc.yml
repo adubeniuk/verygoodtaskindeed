@@ -1,0 +1,15 @@
+# Service definition for Logger
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: logger
+  labels:
+    app: logger
+spec:
+  ports:
+  - name: logger
+    port: 514
+    targetPort: logger
+  selector:
+    app: logger
