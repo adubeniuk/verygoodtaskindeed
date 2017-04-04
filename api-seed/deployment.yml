@@ -37,4 +37,37 @@ spec:
             - exec curl http://$POD_IP:8080/users/1
           initialDelaySeconds: 5
           timeoutSeconds: 3
+          periodSeconds:
+        volumeMounts:
+        - name: varlogjava
+          mountPath: /var/log/java
+      - name: rsyslog-sidecar
+        image: adubeniuk/rsyslog-sidecar
+        imagePullPolicy: Always
+        env:
+        - name: POD_IP
+          valueFrom: { fieldRef: { fieldPath: status.podIP } }
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - exec echo works >> /dev/null
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          exec:
+            command: 
+            - sh
+            - -c
+            - exec echo works >> /dev/null
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
           periodSeconds: 5
+        volumeMounts:
+        - name: varlogjava
+          mountPath: /var/log/java
+      volumes:
+      - name: varlogjava
+        emptyDir: {}
