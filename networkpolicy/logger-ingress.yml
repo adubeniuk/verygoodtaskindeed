@@ -1,8 +1,3 @@
-# Allows ingress traffic on port tcp/514  
-# to pods with label logger
-# from pods with label api-seed and postgres-postgresql
-
-
 apiVersion: extensions/v1beta1
 kind: NetworkPolicy
 metadata:

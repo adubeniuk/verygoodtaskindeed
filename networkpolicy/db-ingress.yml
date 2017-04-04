@@ -1,7 +1,3 @@
-# Allows ingress traffic on port tcp/5432 
-# to pods with label postgres-postgresql
-# from pods with label api-seed
-
 apiVersion: extensions/v1beta1
 kind: NetworkPolicy
 metadata:
